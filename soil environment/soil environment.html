@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 45px 0px 0px 0px;
+            margin: 0;
+        }
+        </style>
+        <title>토양도</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+        <link href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet">
+    
+        <link rel="stylesheet" href="../css/open-iconic-bootstrap.min.css">
+        <link rel="stylesheet" href="../css/animate.css">
+    
+        <link rel="stylesheet" href="../css/owl.carousel.min.css">
+        <link rel="stylesheet" href="../css/owl.theme.default.min.css">
+        <link rel="stylesheet" href="../css/magnific-popup.css">
+    
+        <link rel="stylesheet" href="../css/aos.css">
+    
+        <link rel="stylesheet" href="../css/ionicons.min.css">
+    
+        <link rel="stylesheet" href="../css/flaticon.css">
+        <link rel="stylesheet" href="../css/icomoon.css">
+        <link rel="stylesheet" href="../css/style.css">
+
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar ftco-navbar-light site-navbar-target" id="ftco-navbar">
+            <div class="container">
+                <a href="../index.html"><img src="../images/logo_01.png" width="250">
+                </a>
+                <button class="navbar-toggler js-fh5co-nav-toggle fh5co-nav-toggle" type="button" data-toggle="collapse"
+                    data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+                </button>
+    
+                <div class="collapse navbar-collapse" id="ftco-nav">
+                    <ul class="navbar-nav nav ml-auto">
+                        <li class="nav-item"><a href="../index.html" class="nav-link"><span>Home</span></a></li>
+                        <li class="nav-item"><a href="../index.html" class="nav-link"><span>About</span></a></li>
+                        <li class="nav-item"><a href="../index.html" class="nav-link"><span>Projects</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/drainageclass_1.js"></script>
+        <script src="data/deepsoilgravelcontent_2.js"></script>
+        <script src="data/deepsoilclass_3.js"></script>
+        <script src="data/effectivesoildepth_4.js"></script>
+        <script src="data/Gunsurisite_5.js"></script>
+        <script src="data/Gunsuribuilding_6.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_drainageclass_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">배수등급</th>\
+                        <td>' + (feature.properties['SOILDRA'] !== null ? autolinker.link(feature.properties['SOILDRA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_drainageclass_1_0(feature) {
+            switch(String(feature.properties['SOILDRA'])) {
+                case '매우불량':
+                    return {
+                pane: 'pane_drainageclass_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,0,32,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '약간불량':
+                    return {
+                pane: 'pane_drainageclass_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(244,165,130,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '약간양호':
+                    return {
+                pane: 'pane_drainageclass_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,247,247,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '양호':
+                    return {
+                pane: 'pane_drainageclass_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(146,197,222,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '매우양호':
+                    return {
+                pane: 'pane_drainageclass_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(5,113,176,0.4)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_drainageclass_1');
+        map.getPane('pane_drainageclass_1').style.zIndex = 401;
+        map.getPane('pane_drainageclass_1').style['mix-blend-mode'] = 'normal';
+        var layer_drainageclass_1 = new L.geoJson(json_drainageclass_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_drainageclass_1',
+            layerName: 'layer_drainageclass_1',
+            pane: 'pane_drainageclass_1',
+            onEachFeature: pop_drainageclass_1,
+            style: style_drainageclass_1_0,
+        });
+        bounds_group.addLayer(layer_drainageclass_1);
+        map.addLayer(layer_drainageclass_1);
+        function pop_deepsoilgravelcontent_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">심토자갈함량</th>\
+                        <td>' + (feature.properties['DEEPSOIL_S'] !== null ? autolinker.link(feature.properties['DEEPSOIL_S'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_deepsoilgravelcontent_2_0(feature) {
+            switch(String(feature.properties['DEEPSOIL_S'])) {
+                case '0-15%':
+                    return {
+                pane: 'pane_deepsoilgravelcontent_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,245,235,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '15-35%':
+                    return {
+                pane: 'pane_deepsoilgravelcontent_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,189,131,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '35%이상':
+                    return {
+                pane: 'pane_deepsoilgravelcontent_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,101,17,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '기타':
+                    return {
+                pane: 'pane_deepsoilgravelcontent_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(127,39,4,0.4)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_deepsoilgravelcontent_2');
+        map.getPane('pane_deepsoilgravelcontent_2').style.zIndex = 402;
+        map.getPane('pane_deepsoilgravelcontent_2').style['mix-blend-mode'] = 'normal';
+        var layer_deepsoilgravelcontent_2 = new L.geoJson(json_deepsoilgravelcontent_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_deepsoilgravelcontent_2',
+            layerName: 'layer_deepsoilgravelcontent_2',
+            pane: 'pane_deepsoilgravelcontent_2',
+            onEachFeature: pop_deepsoilgravelcontent_2,
+            style: style_deepsoilgravelcontent_2_0,
+        });
+        bounds_group.addLayer(layer_deepsoilgravelcontent_2);
+        map.addLayer(layer_deepsoilgravelcontent_2);
+        function pop_deepsoilclass_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">심토토성</th>\
+                        <td>' + (feature.properties['DEEPSOIL_Q'] !== null ? autolinker.link(feature.properties['DEEPSOIL_Q'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_deepsoilclass_3_0(feature) {
+            switch(String(feature.properties['DEEPSOIL_Q'])) {
+                case '기타':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(215,25,28,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '미사사양질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(240,124,74,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '미사식양질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,201,128,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '사양질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,191,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '사질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(199,232,173,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '식양질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(128,191,171,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '식질':
+                    return {
+                pane: 'pane_deepsoilclass_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(43,131,186,0.4)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_deepsoilclass_3');
+        map.getPane('pane_deepsoilclass_3').style.zIndex = 403;
+        map.getPane('pane_deepsoilclass_3').style['mix-blend-mode'] = 'normal';
+        var layer_deepsoilclass_3 = new L.geoJson(json_deepsoilclass_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_deepsoilclass_3',
+            layerName: 'layer_deepsoilclass_3',
+            pane: 'pane_deepsoilclass_3',
+            onEachFeature: pop_deepsoilclass_3,
+            style: style_deepsoilclass_3_0,
+        });
+        bounds_group.addLayer(layer_deepsoilclass_3);
+        map.addLayer(layer_deepsoilclass_3);
+        function pop_effectivesoildepth_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">유효토심</th>\
+                        <td>' + (feature.properties['VLDSOILDEP'] !== null ? autolinker.link(feature.properties['VLDSOILDEP'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_effectivesoildepth_4_0(feature) {
+            switch(String(feature.properties['VLDSOILDEP'])) {
+                case '0-20cm':
+                    return {
+                pane: 'pane_effectivesoildepth_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,0,32,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '100cm이상':
+                    return {
+                pane: 'pane_effectivesoildepth_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(244,165,130,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '20-50cm':
+                    return {
+                pane: 'pane_effectivesoildepth_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,247,247,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '50-100cm':
+                    return {
+                pane: 'pane_effectivesoildepth_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(146,197,222,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '기타':
+                    return {
+                pane: 'pane_effectivesoildepth_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.0596078431372549)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(5,113,176,0.4)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_effectivesoildepth_4');
+        map.getPane('pane_effectivesoildepth_4').style.zIndex = 404;
+        map.getPane('pane_effectivesoildepth_4').style['mix-blend-mode'] = 'normal';
+        var layer_effectivesoildepth_4 = new L.geoJson(json_effectivesoildepth_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_effectivesoildepth_4',
+            layerName: 'layer_effectivesoildepth_4',
+            pane: 'pane_effectivesoildepth_4',
+            onEachFeature: pop_effectivesoildepth_4,
+            style: style_effectivesoildepth_4_0,
+        });
+        bounds_group.addLayer(layer_effectivesoildepth_4);
+        map.addLayer(layer_effectivesoildepth_4);
+        function pop_Gunsurisite_5(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['문화재코드'] !== null ? autolinker.link(feature.properties['문화재코드'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['종목코드'] !== null ? autolinker.link(feature.properties['종목코드'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['문화재명'] !== null ? autolinker.link(feature.properties['문화재명'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['면적'] !== null ? autolinker.link(feature.properties['면적'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['시도코드'] !== null ? autolinker.link(feature.properties['시도코드'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['시군구코드'] !== null ? autolinker.link(feature.properties['시군구코드'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Gunsurisite_5_0() {
+            return {
+                pane: 'pane_Gunsurisite_5',
+                opacity: 1,
+                color: 'rgba(227,26,28,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        function style_Gunsurisite_5_1() {
+            return {
+                pane: 'pane_Gunsurisite_5',
+                stroke: false, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Gunsurisite_5');
+        map.getPane('pane_Gunsurisite_5').style.zIndex = 405;
+        map.getPane('pane_Gunsurisite_5').style['mix-blend-mode'] = 'normal';
+        var layer_Gunsurisite_5 = new L.geoJson.multiStyle(json_Gunsurisite_5, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Gunsurisite_5',
+            layerName: 'layer_Gunsurisite_5',
+            pane: 'pane_Gunsurisite_5',
+            onEachFeature: pop_Gunsurisite_5,
+            styles: [style_Gunsurisite_5_0,style_Gunsurisite_5_1,]
+        });
+        bounds_group.addLayer(layer_Gunsurisite_5);
+        map.addLayer(layer_Gunsurisite_5);
+        function pop_Gunsuribuilding_6(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">건물지명</th>\
+                        <td>' + (feature.properties['건물지명'] !== null ? autolinker.link(feature.properties['건물지명'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">일제시기 발굴</th>\
+                        <td>' + (feature.properties['일제 발굴'] !== null ? autolinker.link(feature.properties['일제 발굴'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">\'00 이후 발굴</th>\
+                        <td>' + (feature.properties['2000 발굴'] !== null ? autolinker.link(feature.properties['2000 발굴'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Gunsuribuilding_6_0() {
+            return {
+                pane: 'pane_Gunsuribuilding_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.14901960784313725)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(249,237,219,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Gunsuribuilding_6');
+        map.getPane('pane_Gunsuribuilding_6').style.zIndex = 406;
+        map.getPane('pane_Gunsuribuilding_6').style['mix-blend-mode'] = 'normal';
+        var layer_Gunsuribuilding_6 = new L.geoJson(json_Gunsuribuilding_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Gunsuribuilding_6',
+            layerName: 'layer_Gunsuribuilding_6',
+            pane: 'pane_Gunsuribuilding_6',
+            onEachFeature: pop_Gunsuribuilding_6,
+            style: style_Gunsuribuilding_6_0,
+        });
+        bounds_group.addLayer(layer_Gunsuribuilding_6);
+        map.addLayer(layer_Gunsuribuilding_6);
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'<img src="legend/Gunsuribuilding_6.png" /> Gunsuri building': layer_Gunsuribuilding_6,'<img src="legend/Gunsurisite_5.png" /> Gunsuri site': layer_Gunsurisite_5,'effective soil depth<br /><table><tr><td style="text-align: center;"><img src="legend/effectivesoildepth_4_020cm0.png" /></td><td>0-20cm</td></tr><tr><td style="text-align: center;"><img src="legend/effectivesoildepth_4_100cm이상1.png" /></td><td>100cm이상</td></tr><tr><td style="text-align: center;"><img src="legend/effectivesoildepth_4_2050cm2.png" /></td><td>20-50cm</td></tr><tr><td style="text-align: center;"><img src="legend/effectivesoildepth_4_50100cm3.png" /></td><td>50-100cm</td></tr><tr><td style="text-align: center;"><img src="legend/effectivesoildepth_4_기타4.png" /></td><td>기타</td></tr></table>': layer_effectivesoildepth_4,'deepsoil class<br /><table><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_기타0.png" /></td><td>기타</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_미사사양질1.png" /></td><td>미사사양질</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_미사식양질2.png" /></td><td>미사식양질</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_사양질3.png" /></td><td>사양질</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_사질4.png" /></td><td>사질</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_식양질5.png" /></td><td>식양질</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilclass_3_식질6.png" /></td><td>식질</td></tr></table>': layer_deepsoilclass_3,'deepsoil gravel content<br /><table><tr><td style="text-align: center;"><img src="legend/deepsoilgravelcontent_2_0150.png" /></td><td>0-15%</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilgravelcontent_2_15351.png" /></td><td>15-35%</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilgravelcontent_2_35이상2.png" /></td><td>35%이상</td></tr><tr><td style="text-align: center;"><img src="legend/deepsoilgravelcontent_2_기타3.png" /></td><td>기타</td></tr></table>': layer_deepsoilgravelcontent_2,'drainage class<br /><table><tr><td style="text-align: center;"><img src="legend/drainageclass_1_매우불량0.png" /></td><td>매우불량</td></tr><tr><td style="text-align: center;"><img src="legend/drainageclass_1_약간불량1.png" /></td><td>약간불량</td></tr><tr><td style="text-align: center;"><img src="legend/drainageclass_1_약간양호2.png" /></td><td>약간양호</td></tr><tr><td style="text-align: center;"><img src="legend/drainageclass_1_양호3.png" /></td><td>양호</td></tr><tr><td style="text-align: center;"><img src="legend/drainageclass_1_매우양호4.png" /></td><td>매우양호</td></tr></table>': layer_drainageclass_1,"OSM Standard": layer_OSMStandard_0,}).addTo(map);
+        setBounds();
+        resetLabels([layer_Gunsurisite_5,layer_Gunsuribuilding_6]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Gunsurisite_5,layer_Gunsuribuilding_6]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Gunsurisite_5,layer_Gunsuribuilding_6]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Gunsurisite_5,layer_Gunsuribuilding_6]);
+        });
+        </script>
+    </body>
+</html>
